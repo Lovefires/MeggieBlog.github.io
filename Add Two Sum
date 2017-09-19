@@ -1,0 +1,50 @@
+Description：
+You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order 
+and each of their nodes contain a single digit. Add the two numbers and return it as a linked list.
+
+You may assume the two numbers do not contain any leading zero, except the number 0 itself.
+
+Input: (2 -> 4 -> 3) + (5 -> 6 -> 4)
+Output: 7 -> 0 -> 8
+
+Code：
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+       ListNode* ret = (ListNode*) malloc(sizeof(ListNode));
+	ListNode* cur = ret;
+    int val1, val2, add = 0;
+	while(l1 != NULL || l2 != NULL || add != 0) {
+		ListNode *node = (ListNode*) malloc(sizeof(ListNode));
+		val1 = (l1 != NULL) ? l1->val : 0;
+		val2 = (l2 != NULL) ? l2->val : 0;
+		node->val = (val1 + val2 + add) % 10;
+		node->next = NULL;
+
+		//cout << node->val;
+
+        add = (val1 + val2 + add) / 10;
+        cur->next = node;
+		cur = node;
+        l1 = (l1 == NULL) ? NULL : l1->next;
+        l2 = (l2 == NULL) ? NULL : l2->next;
+    }     
+    return ret->next;
+    }
+};
+
+Analysis:
+1. malloc 和 new 的区别：  http://blog.csdn.net/zjc156m/article/details/16819357
+2. 建立链表，可以用尾插法 cur->next = node; cur = node;
+3. 插入到链表上的是一个个结点，结点可以用结构体定义；node->val = 1;  node->next = NULL;
+4. 操作指针时要特别注意空指针
+
+
