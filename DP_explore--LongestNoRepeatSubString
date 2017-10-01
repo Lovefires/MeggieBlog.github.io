@@ -1,0 +1,145 @@
+动态规划（DP）问题
+
+Q1: 求一个字符串的最长无重复子串的长度
+
+Analysis：
+（1）解决这个问题首先可以想到的是“暴力法”。
+Step1: 得到字符串的长度为n;
+Step2：然后循环check, for(int i = n; i > 0; i++), 在字符串中截取长度为 i 的子串
+Step3: 检查截取的子串是否无重复字符，若无重复字符，则取当前子串的长度，即为最长无重复子串的长度。
+
+这个方法思路简单，但是算法的复杂度高，算法复杂度为O(n^4).提交到Leetcode中无法AC，当字符串的长度很大时，会出现严重的运行超时。SLOW！！
+
+Code:
+#include <string>
+#include <vector>
+#include <iostream>
+#include <windows.h>
+
+using namespace std;
+
+bool checkSubString(string s) {
+	for (int i = 0; i < s.size(); i++) {
+		for (int j = i +1; j < s.size(); j++) {
+			if (s[j] == s[i]) 
+				return false;
+		}		
+	}
+	return true;
+}
+
+ int lengthOfLongestSubstring(string s) {
+        int len = s.size();
+
+    for (int i = len; i >=1; i--) {
+		for (int j = 0; j <= s.size() - i; j++) {
+			string substr = s.substr(j, i);
+			//判断当前字符串中是否有重复的字符
+			if (checkSubString(substr))
+				return i;
+		}
+	}
+	return 0;
+}
+
+int main() {
+	string s;
+	string a;
+	cout << "please input a string" << endl;
+	getline(cin, s);
+	
+	int subLen = lengthOfLongestSubstring(s);
+
+	cout << "the length of longest substring of " << s << " is :" << subLen;
+
+
+	system("pause");
+	return 0;
+}
+
+（2）另外一种时间复杂度相对较低的方法是：记录下字符串在对应字符在字符串中的位置以及当前是否被查询的状态；定义一个指向当前被查询字符的标志 i, 若当前
+被查询的字符未被查询过，则修改该字符的查询状态，i++;len++； 并将该字符的位置和状态存储到map中;  若当前字符已被查询过，在map中找到该字符对应的位置
+index，并将当前查询标志 i 移到 index 处（i= index）,再将除当前字符外的所有字符的状态置为未查询，并将map中已存储的内容全部清空（important）。该
+算法的时间复杂度为O(n ^ 2).
+
+Code:
+int getLongestNoRepeatSubStringLen(string str) {
+	int ch[256] = {0};
+	memset(ch, -1, sizeof(ch));
+
+	map<char, int> index_ch;
+
+	int len=0, maxLen = 0;
+	int index = 0;
+	for (int i = 0; i < str.length(); i++) {
+		if (-1 == ch[str[i]]) {
+			len++;
+			ch[str[i]] = 0;
+			index_ch.insert(pair<char, int> (str[i], i));
+		} else {
+			if (str.length()-1 != i) {
+				len = 0;
+				memset(ch, -1, sizeof(ch));
+				i = index_ch.find(str[i])->second;
+				index_ch.clear();
+			}
+		}
+		maxLen = max(maxLen, len);
+	}
+
+	return maxLen;
+}
+
+（3）解决此类问题常用的方法是动态规划（Dynamic Programming）。用动态规划的问题解决问题，最重要的是找到递推公式或规律。
+对于本题的问题，递推规律可以表示为：(Samples: a b c a a b c b b)
+  1. ch[str[i]] = false; i++;  if true == ch[str[j]] , str[i] != str[j];
+  2. i++; j++;  if true == ch[str[j]] , str[i] == str[j];
+  3. ch[str[j]] = true; i++; j++;  if others.
+  
+Code:
+#include <map>
+#include <string>
+#include <cstring>
+#include <iostream>
+#include <algorithm>
+#include <windows.h>
+
+using namespace std;
+
+int getLongestNoRepeatSubStringLen_DP(string str) {
+	int i = 0, j = 0;
+	int len = 0, maxLen = 0;
+	bool ch[256] = {false};
+
+	while (j < str.length()) {
+		if (true == ch[str[j]]) {
+			len = j - i;
+			while (str[i] != str[j]) {
+               ch[str[i]] = false;
+			   i++;
+			}
+			i++;
+			j++;
+		} else {
+			ch[str[j]] = true;
+			j++;
+			len = j - i;
+		}
+		maxLen = max(maxLen, len);
+	}
+	return maxLen;
+}
+
+int main() {
+	string str;
+
+	cout << "please input a string: ";
+	getline(cin, str);
+
+	int maxLen = getLongestNoRepeatSubStringLen_DP(str);
+
+	cout << "the length of longest non-repeat substring is " << maxLen << endl;
+
+	system("pause");
+	return 0;
+}
