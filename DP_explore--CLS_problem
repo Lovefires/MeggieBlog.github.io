@@ -1,0 +1,60 @@
+动态规划问题：
+Q2: 求两个字符串的最长公共子串的长度
+
+Samples:
+input abcdefs
+      bcdfsghgfh
+ouput 3
+
+Analysis:
+动态规划问题最重要的是先找到递推公式，针对这个问题，递推公式为：
+ 1. c[i][j] = c[i-1][j-1] + 1;  if str1[i] == str2[j],
+ 2. c[i][j] = max(c[i-1][j], c[i][j-1]);  if others.
+ 
+ Code:
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <windows.h>
+
+using namespace std;
+
+int main() {
+	string str_A, str_B;
+	cout << "please input the first string: ";
+	getline(cin, str_A);
+	cout << "please input the second string: ";
+	getline(cin, str_B);
+
+	int c[400][400];
+	memset(c, 0, sizeof(c));  //数组c的值全部置为0
+
+	int maxV = 0;
+	for (int i = 0; i < str_A.size(); i++) {
+		for (int j = 0; j < str_B.size(); j++) {
+			if (str_A[i] == str_B[j]) {
+				if (0 == i || 0 == j)
+					c[i][j] = 1;
+				else 
+					c[i][j] = c[i-1][j-1] + 1;
+				
+				maxV = max(maxV, c[i][j]);
+			}			
+			else {
+				// Method one
+				if (0 == i || 0 == j) 
+					c[i][j] = 0;
+				else 
+					c[i][j] = max(c[i-1][j], c[i][j-1]);
+				maxV = max(maxV, c[i][j]);
+
+				// Method two
+				c[i][j] = 0;
+			}
+		}	
+	}
+
+	cout << "CLS: " << maxV << endl;
+
+	system("pause");
+} 
