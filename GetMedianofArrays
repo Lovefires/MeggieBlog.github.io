@@ -1,0 +1,228 @@
+Description:
+There are two sorted arrays nums1 and nums2 of size m and n respectively.
+Find the median of the two sorted arrays. The overall run time complexity should be O(log (m+n)).
+
+Samples:
+nums1 = [1, 3]
+nums2 = [2]
+The median is 2.0
+
+Analysis:
+这题的解决方法想了两种。
+
+方法一： 
+这种方法思路简单，但时间复杂度相对较高，O(m+n)。
+思路：将两个数组Merge， 然后将其排序， 再取中值
+
+Code:
+#include <string>
+#include <stdio.h>
+#include <iostream>
+#include <algorithm>
+#include <windows.h>
+
+using namespace std;
+
+int main() {
+	// input and initialize
+	int len_1, len_2;
+	cout << "please input the length and elements of the first array:";
+	cin >> len_1;
+	int* arr_1 = new int[len_1];	
+	for (int i = 0; i < len_1; i++) {
+		cin >> arr_1[i];
+	}
+
+	cout << "please input the length and elements of the second array:";
+	cin >> len_2;
+	int* arr_2;
+	arr_2 = (int*)malloc(sizeof(int) * len_2);
+	for (int i = 0; i < len_2; i++) {
+		cin >> arr_2[i];
+	}
+
+	//merge
+	int* merge_arr = new int[len_1 + len_2];
+	int index = 0;
+	for (; index< len_1; index++) {
+        merge_arr[index] = arr_1[index];
+	}
+	for (; index < len_1 + len_2; index++) {
+		merge_arr[index] = arr_2[index - len_1];
+	}
+	for (int i = 0 ; i < len_1 + len_2; i++) {
+		cout << merge_arr[i] << endl;
+	}
+
+	//sort
+	sort(merge_arr, merge_arr + len_1 +len_2);
+
+	//get median
+	int mid = ((len_1 + len_2) % 2 == 0 ) ? (merge_arr[(len_1 + len_2) / 2] + merge_arr[(len_1 + len_2) / 2 - 1]) / 2
+		                                  : merge_arr[(len_1 + len_2) / 2];
+	cout << "the median of two sorted arrays is :" << mid << endl;
+
+
+	system("pause");
+	return 0;
+}
+
+方法二： 
+这种方法运用了分治法，降低了时间复杂度,O(log(m+n))
+思路： 要找两个数组的中位数，其实就是要找两个有序数组（假设从小到大排序）的中间的数，即第k个数。我们只要想办法去掉前k-1个数，就能得到第k个数的值。
+现在要找到第两个数组联合起来以后的第K个数，那么比较array1的第 k/2 个数A1 和array2的第 k-k/2 个数A2的大小，如果A1 > A2, 那么array2的前k-k/2 个
+数一定在两个数组联合起来后的前 k 个数里面，于是可以将array2的前 k-k/2个数移除， 再找剩余的数字元素中的第 k-(k-k/2)的元素。如此循环下去，直到达到
+某一临界条件。这里只是说了大致的思路，有一些细节的处理和临界情况的处理，可以结合代码得知。
+
+Code:
+#include <iostream>
+#include <algorithm>
+#include <windows.h>
+
+using namespace std;
+
+// get an array
+int* getArray() {
+	int len;
+	cout << "please input the length and elements of the array:";
+	cin >> len;
+	if (len <= 0) {
+		cout << "input length error!" << endl;
+		return new int[0];
+	}
+	int* array = new int[len];
+	for (int i = 0; i < len; i++) {
+		cin >> array[i];
+	}
+
+	return array;
+}
+
+// get the Kth number of two arrays
+int getKthNum(int* arr_1, int len_1, int* arr_2, int len_2, int n) {
+	if (len_1 > len_2)
+		return getKthNum(arr_2, len_2, arr_1, len_1, n);
+	if (0 == len_1)
+		return arr_2[n];
+	if (0 == n )
+		return min(arr_1[0], arr_2[0]);
+	if (1 == n)
+		return max(arr_1[0], arr_2[0]);
+	int l_1 = min(n / 2, len_1);
+	int l_2 = n - l_1;
+	if (arr_1[l_1] > arr_2[l_2]) 
+		return getKthNum(arr_1, len_1, arr_2 + l_2, len_2 - l_2, n - l_2);
+	else 
+		return getKthNum(arr_1 + l_1, len_1 - l_1, arr_2, len_2, n - l_1);
+
+}
+
+// get median of two sorted arrays
+int getMedianofArrays(int* arr_1, int len_1, int* arr_2, int len_2) {
+	if ((len_1 + len_2) / 2 == 0) 
+		return ( getKthNum(arr_1, len_1, arr_2, len_2, (len_1 + len_2) / 2) 
+		       + getKthNum(arr_1, len_1, arr_2, len_2, (len_1 + len_2) / 2 - 1) ) / 2;
+	else 
+		return getKthNum(arr_1, len_1, arr_2, len_2, (len_1 + len_2) / 2);
+}
+
+// main function
+int main() {
+	// input arrays
+	int len_1, len_2;
+	cout << "please input the length and elements of the first array:";
+	cin >> len_1;
+	if (len_1 <= 0) {
+		cout << "input length error!" << endl;
+	}
+	int* arr_1 = new int[len_1];
+	for (int i = 0; i < len_1; i++) {
+		cin >> arr_1[i];
+	}
+
+	cout << "please input the length and elements of the second array:";
+	cin >> len_2;
+	if (len_2 <= 0) {
+		cout << "input length error!" << endl;
+	}
+	int* arr_2 = new int[len_2];
+	for (int i = 0; i < len_2; i++) {
+		cin >> arr_2[i];
+	}
+
+	int median = getMedianofArrays(arr_1, len_1, arr_2, len_2);
+	cout << "the median of the two sorted arrays is: " << median;
+
+	system("pause");
+	return 0;
+}
+
+这里为了符合Leetcode中给定的函数形式，写了另外两个处理函数，其思路是完全一样的，
+Code:
+// get the Kth number of two arrays
+double getKthNum4Leetcode(vector<int> arr_1, int len_1, vector<int> arr_2, int len_2, int n) {
+	if (len_1 > len_2)
+		return getKthNum4Leetcode(arr_2, len_2, arr_1, len_1, n);
+	if (0 == len_1)
+		return arr_2[n - 1];
+	if (1 == n)
+		return min(arr_1[0], arr_2[0]);
+	int l_1 = min(n / 2, len_1);
+	int l_2 = n - l_1;
+	if (arr_1[l_1 - 1] > arr_2[l_2 - 1]) {
+		for (int i = 0; i < l_2; i++) {
+			arr_2.erase(arr_2.begin());
+			len_2--;
+		}
+		return getKthNum4Leetcode(arr_1, len_1, arr_2, len_2, n - l_2);
+	}
+	else {
+		for (int i = 0; i < l_1; i++) {
+			arr_1.erase(arr_1.begin());
+			len_1--;
+		}
+		return getKthNum4Leetcode(arr_1, len_1, arr_2, len_2, n - l_1);
+	}
+
+}
+
+// get median of two sorted arrays
+double findMedianSortedArrays4Leetcode(vector<int>& nums1, vector<int>& nums2) {
+	int len_1 = nums1.size();
+	int len_2 = nums2.size();
+	if ((len_1 + len_2) % 2 == 0) 
+		return ( getKthNum4Leetcode(nums1, len_1, nums2, len_2, (len_1 + len_2) / 2) + getKthNum4Leetcode(nums1, len_1, nums2, len_2, (len_1 + len_2) / 2 + 1) ) * 1.0 / 2;
+	else 
+		return getKthNum4Leetcode(nums1, len_1, nums2, len_2, (len_1 + len_2) / 2 + 1);
+}
+
+Added Contents:
+这里补充几个语法的知识点：
+1. getchar(),getch(),getche()函数的区别：
+getchar()是C的标准库函数，包含在头文件<stdio.h>中，而getch()和getche()需要的头文件是<conio.h>。
+conio是Console Input/Output（控制台输入输出）的简写。
+两个函数都没有参数，都是读入一个字符，返回值都是int型。但是注意getch()是从console读取，而getchar()是从stdin，一般是指键盘。
+要试验两者的区别，你可以写一个getch()看看不从键盘输入，比如直接用鼠标复制一段字符粘贴到console上，你会看到getch()会立即返回，
+但getchar一直等待，直到遇到 ENTER 键。getch()读到一个字符就返回，不管是什么字符，所以，在TC时代经常被放在程序最后面，达到“按任意键退出”的效果。
+而getchar()直到遇见ENTER 键才返回，返回值是第一个字符，但是后面的字符也不会被丢弃，而是保存在一个缓冲区内。
+
+2.memcpy()函数的用法
+原型： 　void *memcpy(void *dest, const void *src, size_t n);
+#include<string.h>
+功能：从源src所指的内存地址的起始位置开始拷贝n个字节到目标dest所指的内存地址的起始位置中
+疑问：当用在main（）函数里面时，达不到拷贝效果，为什么呢？
+
+3. vector的一个小用法
+vector<int> arr;
+arr.erase(arr.begin());  //移除某个位置的元素，erase的参数是iterator.
+
+4. 自己的感受： 写代码时，尽量做到简洁明了。
+1）用较少的代码表达相同的含义
+2）把代码尽量切分，每个函数只做一件事情，增强代码的可读性和独立性，同时可以在一定程度上避免代码冗余。
+
+
+
+
+
+
+
